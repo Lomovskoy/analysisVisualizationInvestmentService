@@ -1,6 +1,51 @@
 <html>
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8"/>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
 
+        function drawChart() {
+
+            var data = google.visualization.arrayToDataTable([
+                ['Task', 'Hours per Day'],
+                {{#stocks}}
+                    ['{{ticker}}', {{prise}}],
+                {{/stocks}}
+                ['', 0]
+            ]);
+
+            var options = {
+                title: 'My Daily Activities'
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+            chart.draw(data, options);
+        }
+    </script>
+</head>
 <body>
-<div>{{some}}</div>
+
+<form action="/save" method="post">
+    <p><b>Enter your papers:</b></p>
+    <p><label>
+        <textarea rows="10" cols="45" name="text"></textarea>
+    </label></p>
+    <p><input type="submit" value="Send"></p>
+</form>
+<H4>{{some}}</H4>
+<br>
+<table border="1">
+    {{#stocks}}
+        <tr>
+            <td>{{ticker}}</td>
+            <td>{{prise}}</td>
+        </tr>
+    {{/stocks}}
+</table>
+<div id="piechart" style="width: 900px; height: 500px;"></div>
 </body>
 </html>
