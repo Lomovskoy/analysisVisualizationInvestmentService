@@ -36,7 +36,7 @@ public class MainController {
         var portfolioId = portfolioService.save(text);
         var portfolioPieChartDto = portfolioService.buildPieChart(portfolioId);
         var portfolioAreaChartDto = portfolioService.buildAreaChart(portfolioId);
-
+        portfolioService.buildIndexAreaChart("VOO", portfolioAreaChartDto);
 
         model.put("id", "portfolio id - " + portfolioId);
         model.put("pieCharts", portfolioPieChartDto.getTicker());

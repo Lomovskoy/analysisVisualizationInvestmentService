@@ -16,4 +16,6 @@ public class StockAreaChartDto {
     private LocalDate date;
 
     private Double avgPrise;
+
+    private Double indexAvgPrise;
 }

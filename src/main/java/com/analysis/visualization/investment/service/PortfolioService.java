@@ -13,8 +13,10 @@ import yahoofinance.YahooFinance;
 import yahoofinance.histquotes.Interval;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -63,21 +65,80 @@ public class PortfolioService {
 
     public PortfolioAreaChartDto buildAreaChart(UUID id) throws IOException {
         var portfolio = portfolioRepository.findById(id).orElseThrow();
+        var symbols = portfolio.getStocks().stream().map(Stock::getTicker).toArray(String[]::new);
+
+        var tickerCountMap = portfolio.getStocks().stream()
+                .collect(Collectors.toMap(Stock::getTicker, Stock::getCount));
 
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         from.add(Calendar.YEAR, -5); // from 5 years ago
 
-        var google = YahooFinance.get("GOOG", from, to, Interval.WEEKLY);
+        var stocksYahooFinance = YahooFinance.get(symbols, from, to, Interval.WEEKLY);
+
+        int i = 0;
+        var datePriseMap = new LinkedHashMap<LocalDate, Double>();
+
+        for (var entrySet : stocksYahooFinance.entrySet()) {
+            // приделай пропрции иначе акции во всем портфеде 1 к 1
+            var count = tickerCountMap.get(entrySet.getKey());
+            for (var history : entrySet.getValue().getHistory()) {
+                var date = history.getDate().getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                var avgPrise = (history.getOpen().doubleValue() + history.getClose().doubleValue()) * count / 2 ;
+                if (i == 0) {
+                    datePriseMap.put(date, avgPrise);
+                } else {
+                    if (datePriseMap.get(date) != null) {
+                        datePriseMap.put(date, datePriseMap.get(date) + avgPrise);
+                    }
+                }
+
+            }
+            i++;
+        }
 
         var stockDtos = new ArrayList<StockAreaChartDto>();
+        for (var stock : datePriseMap.entrySet()) {
+            stockDtos.add(new StockAreaChartDto(stock.getKey(), stock.getValue(), null));
+        }
 
-        for (var history : google.getHistory()) {
-            var date = history.getDate().getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            var avgPrise = (history.getOpen().doubleValue() + history.getClose().doubleValue()) / 2;
-            stockDtos.add(new StockAreaChartDto(date, avgPrise));
+
+        // приведение к нулю
+        var firstAvgPrise = stockDtos.get(0).getAvgPrise();
+
+        for (var stock : stockDtos) {
+            stock.setAvgPrise(stock.getAvgPrise() - firstAvgPrise);
         }
 
         return new PortfolioAreaChartDto(id, stockDtos);
+    }
+
+    public void buildIndexAreaChart(String ticker, PortfolioAreaChartDto portfolioAreaChartDto) throws IOException {
+
+        Calendar from = Calendar.getInstance();
+        Calendar to = Calendar.getInstance();
+        from.add(Calendar.YEAR, -5); // from 5 years ago
+
+        var stocksYahooFinance = YahooFinance.get(ticker, from, to, Interval.WEEKLY);
+
+        var datePriseMap = new LinkedHashMap<LocalDate, Double>();
+
+        for (var history : stocksYahooFinance.getHistory()) {
+            var date = history.getDate().getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            var avgPrise = (history.getOpen().doubleValue() + history.getClose().doubleValue()) / 2 ;
+            datePriseMap.put(date, avgPrise);
+        }
+
+        int i = 0;
+        for (var stock : datePriseMap.entrySet()) {
+            portfolioAreaChartDto.getTicker().get(i++).setIndexAvgPrise(stock.getValue());
+        }
+
+        // приведение к нулю
+        var firstAvgPrise = portfolioAreaChartDto.getTicker().get(0).getIndexAvgPrise();
+
+        for (var stock : portfolioAreaChartDto.getTicker()) {
+            stock.setIndexAvgPrise(stock.getIndexAvgPrise() - firstAvgPrise);
+        }
     }
 }

@@ -19,7 +19,7 @@
             ]);
 
             var options = {
-                title: 'My Daily Activities'
+                title: 'My Daily Activities {{id}}'
             };
 
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
@@ -29,14 +29,14 @@
 
         function drawAreaChart() {
             var data = google.visualization.arrayToDataTable([
-                ['Year', 'googl'],
+                ['Year', 'Portfolio', 'S&P500'],
                 {{#areaChart}}
-                    ['{{date}}', {{avgPrise}}],
+                    ['{{date}}', {{avgPrise}}, {{indexAvgPrise}}],
                 {{/areaChart}}
             ]);
 
             var options = {
-                title: 'Company Performance',
+                title: 'Company Performance from 5 years ago',
                 hAxis: {title: 'Year', titleTextStyle: {color: '#333'}},
                 vAxis: {minValue: 0}
             };
