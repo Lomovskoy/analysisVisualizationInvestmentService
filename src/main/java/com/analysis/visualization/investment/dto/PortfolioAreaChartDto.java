@@ -10,9 +10,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PortfolioDto {
+public class PortfolioAreaChartDto {
 
     private UUID id;
 
-    private List<StockDto> ticker;
+    private List<StockAreaChartDto> ticker;
 }

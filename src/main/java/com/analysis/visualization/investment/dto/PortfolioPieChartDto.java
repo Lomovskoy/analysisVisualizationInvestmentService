@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class StockDto {
+public class PortfolioPieChartDto {
 
-    private String ticker;
+    private UUID id;
 
-    private Double prise;
+    private List<StockPieChartDto> ticker;
 }

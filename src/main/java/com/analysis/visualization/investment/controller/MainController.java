@@ -33,9 +33,14 @@ public class MainController {
 
     @PostMapping(value = "/save", produces = MediaType.ALL_VALUE + "; charset=utf-8")
     public String save(Map<String, Object> model, @RequestParam String text) throws IOException {
-        var portfolio = portfolioService.save(text);
-        model.put("some", "portfolio id - " + portfolio.getId());
-        model.put("stocks", portfolio.getTicker());
-        return "main";
+        var portfolioId = portfolioService.save(text);
+        var portfolioPieChartDto = portfolioService.buildPieChart(portfolioId);
+        var portfolioAreaChartDto = portfolioService.buildAreaChart(portfolioId);
+
+
+        model.put("id", "portfolio id - " + portfolioId);
+        model.put("pieCharts", portfolioPieChartDto.getTicker());
+        model.put("areaChart", portfolioAreaChartDto.getTicker());
+        return "charts";
     }
 }
