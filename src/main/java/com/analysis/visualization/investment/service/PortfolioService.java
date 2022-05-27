@@ -110,7 +110,7 @@ public class PortfolioService {
             stock.setAvgPrise(stock.getAvgPrise() - firstAvgPrise);
         }
 
-        return new PortfolioAreaChartDto(id, stockDtos);
+        return new PortfolioAreaChartDto(id, stockDtos, firstAvgPrise);
     }
 
     public void buildIndexAreaChart(String ticker, PortfolioAreaChartDto portfolioAreaChartDto) throws IOException {
@@ -122,10 +122,13 @@ public class PortfolioService {
         var stocksYahooFinance = YahooFinance.get(ticker, from, to, Interval.WEEKLY);
 
         var datePriseMap = new LinkedHashMap<LocalDate, Double>();
+        // Уравнивание цен активов для сравненеия
+        var factor = getFactor(portfolioAreaChartDto, stocksYahooFinance);
 
         for (var history : stocksYahooFinance.getHistory()) {
             var date = history.getDate().getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             var avgPrise = (history.getOpen().doubleValue() + history.getClose().doubleValue()) / 2 ;
+            avgPrise = avgPrise * factor;
             datePriseMap.put(date, avgPrise);
         }
 
@@ -140,5 +143,11 @@ public class PortfolioService {
         for (var stock : portfolioAreaChartDto.getTicker()) {
             stock.setIndexAvgPrise(stock.getIndexAvgPrise() - firstAvgPrise);
         }
+    }
+
+    private double getFactor(PortfolioAreaChartDto portfolioAreaChartDto, yahoofinance.Stock stocksYahooFinance) throws IOException {
+        var avgPrise = (stocksYahooFinance.getHistory().get(0).getOpen().doubleValue() +
+                stocksYahooFinance.getHistory().get(0).getClose().doubleValue()) / 2 ;
+        return (portfolioAreaChartDto.getFirstAvgPrise() / avgPrise);
     }
 }

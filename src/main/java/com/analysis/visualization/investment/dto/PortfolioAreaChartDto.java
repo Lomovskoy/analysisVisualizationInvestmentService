@@ -15,4 +15,6 @@ public class PortfolioAreaChartDto {
     private UUID id;
 
     private List<StockAreaChartDto> ticker;
+
+    private Double firstAvgPrise;
 }
