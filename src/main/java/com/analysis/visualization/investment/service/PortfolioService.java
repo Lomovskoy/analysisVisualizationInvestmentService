@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PortfolioService {
 
+    private final int yearsAgo = -12;
     private PortfolioRepository portfolioRepository;
 
     public UUID save(String text) {
@@ -33,7 +34,7 @@ public class PortfolioService {
 
         for (var str : arrStr) {
             var arr = str.split("\t");
-            stocks.add(new Stock(id, arr[0], Integer.valueOf(arr[1])));
+            stocks.add(new Stock(id, arr[0].replace(".", "-"), Integer.valueOf(arr[1])));
         }
 
         var portfolio = new Portfolio(id, stocks);
@@ -53,7 +54,7 @@ public class PortfolioService {
         for (var stock : stocksYahooFinance.entrySet()) {
             var count = stocks.stream()
                     .filter(s -> s.getTicker().equals(stock.getKey()))
-                    .findFirst().get().getCount();
+                    .findFirst().orElseThrow().getCount();
             if (stock.getValue().getQuote().getAsk() != null) {
                 stockDtos.add(new StockPieChartDto(stock.getKey(), stock.getValue().getQuote().getAsk().doubleValue() * count));
             } else {
@@ -72,7 +73,7 @@ public class PortfolioService {
 
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
-        from.add(Calendar.YEAR, -5); // from 5 years ago
+        from.add(Calendar.YEAR, yearsAgo); // from 5 years ago
 
         var stocksYahooFinance = YahooFinance.get(symbols, from, to, Interval.WEEKLY);
 
@@ -117,7 +118,7 @@ public class PortfolioService {
 
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
-        from.add(Calendar.YEAR, -5); // from 5 years ago
+        from.add(Calendar.YEAR, yearsAgo); // from 5 years ago
 
         var stocksYahooFinance = YahooFinance.get(ticker, from, to, Interval.WEEKLY);
 
